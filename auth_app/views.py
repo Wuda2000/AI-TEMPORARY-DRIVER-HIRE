@@ -2,7 +2,9 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from auth_app.models import CustomUser
-
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import CarOwner, Car
+from .forms import CarOwnerForm, CarForm
 from django.http import JsonResponse, HttpResponseForbidden
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string  
@@ -69,48 +71,36 @@ def dashboard(request):
         'driver': driver,
     }
     return render(request, 'auth_app/dashboard.html', context)
-def register_car_owner(request):  
+
+
+def register_car_owner(request):
     if request.method == 'POST':
-        owner_form = CarOwnerRegistrationForm(request.POST, request.FILES)
-        car_form = CarDetailsForm(request.POST, request.FILES)  # Handle file uploads
-
+        owner_form = CarOwnerForm(request.POST)
+        car_form = CarForm(request.POST, request.FILES)
         if owner_form.is_valid() and car_form.is_valid():
-            # Create User instance
-            user = User.objects.create_user(
-                username=owner_form.cleaned_data['username'],
-                password=owner_form.cleaned_data['password']
-            )
-
-            # Save CarOwner instance
-            car_owner = owner_form.save(commit=False)
-            car_owner.user = user
-
-            # Assign uploaded profile image if provided
-            if 'profile_image' in request.FILES:
-                car_owner.profile_image = request.FILES['profile_image']
-
-            car_owner.save()
-
-            # Save Car instance
+            owner = owner_form.save()
             car = car_form.save(commit=False)
-            car.owner = car_owner
-
-            # Assign uploaded car image if provided
-            if 'car_image' in request.FILES:
-                car.car_image = request.FILES['car_image']
-
+            car.owner = owner
             car.save()
-
-            return redirect('car_owner_details', owner_id=car_owner.id)
-
+            return redirect('view_carowner_application', owner_id=owner.id)
     else:
-        owner_form = CarOwnerRegistrationForm()
-        car_form = CarDetailsForm()
-
+        owner_form = CarOwnerForm()
+        car_form = CarForm()
+    
     return render(request, 'auth_app/carowner/register_car_owner.html', {
         'owner_form': owner_form,
-        'car_form': car_form
+        'car_form': car_form,
     })
+
+def view_carowner_application(request, owner_id):
+    owner = get_object_or_404(CarOwner, id=owner_id)
+    car = getattr(owner, 'car', None)
+    
+    return render(request, 'auth_app/carowner/view_carowner_application.html', {
+        'application': owner,
+        'car': car,
+    })
+
 
 def car_owner_details(request, owner_id):
     car_owner = get_object_or_404(CarOwner, id=owner_id)

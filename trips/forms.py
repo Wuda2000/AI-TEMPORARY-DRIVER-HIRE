@@ -1,6 +1,9 @@
 from django import forms
 from auth_app.models import Trip, CustomUser  
-
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import Trip
+from datetime import datetime
 class TripForm(forms.ModelForm):
     class Meta:
         model = Trip
@@ -9,6 +12,12 @@ class TripForm(forms.ModelForm):
             'trip_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
 
+    def clean_trip_date(self):
+        trip_date = self.cleaned_data.get('trip_date')
+        if trip_date and trip_date < datetime.now():
+            raise ValidationError("The trip date must be in the future.")
+        return trip_date
+    
 class TripUpdateForm(forms.ModelForm):
     class Meta:
         model = Trip

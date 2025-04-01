@@ -39,19 +39,72 @@ class CustomUser(AbstractUser):
         """Dynamically import the Review model when needed to avoid AppRegistryNotReady error."""
         Review = apps.get_model('reviews', 'Review')
         return Review
+ 
     
-class CarOwner(models.Model):
-    user = models.OneToOneField('auth_app.CustomUser', on_delete=models.CASCADE, related_name='car_owner_profile')
-    registered_car_model = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)  # Added field for car owner's name
-    year = models.PositiveIntegerField()      # Added field for the year
+class CarOwnerApplication(models.Model):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (APPROVED, "Approved"),
+        (REJECTED, "Rejected"),
+    ]
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="carowner_applications")
+    owner_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15, default="", blank=True)
-
-    email = models.EmailField()                # Added field for email
-
+    email = models.EmailField()
+    car_make = models.CharField(max_length=100)
+    car_model = models.CharField(max_length=100)
+    car_year = models.PositiveIntegerField()
+    plate_number = models.CharField(max_length=20, unique=True)
+    capacity = models.PositiveIntegerField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    applied_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.user.username
+        return f"{self.owner_name} - {self.status}"
+    
+
+class CarOwner(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='car_owner_profile')
+    name = models.CharField(max_length=100)  # Must exist
+    email = models.EmailField()  # Must exist
+    year = models.PositiveIntegerField()
+    address = models.CharField(max_length=255, blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Car Owner"
+    
+class Car(models.Model):
+    owner = models.ForeignKey(CarOwner, on_delete=models.CASCADE, related_name='cars')
+    make = models.CharField(max_length=50, default="UNKNOWN")
+    model = models.CharField(max_length=50, default="UNKNOWN")
+    year = models.IntegerField(default=2000)
+    license_plate = models.CharField(max_length=20, default="UNKNOWN")
+    created_at = models.DateTimeField(default=now)
+    plate_number = models.CharField(max_length=20, unique=True)
+    capacity = models.IntegerField()
+    car_type = models.CharField(max_length=50)
+    car_color = models.CharField(max_length=30)
+
+    def __str__(self):
+        return f"{self.make} {self.model} ({self.year})"
+ 
+
+
+class CarOwnerApplicationContent(models.Model):
+    application = models.ForeignKey(CarOwnerApplication, on_delete=models.CASCADE, related_name="application_contents")
+    document = models.FileField(upload_to="carowner_applications/", default='default.pdf')
+    additional_notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Documents for {self.application.owner_name}"
+
 
 class Driver(models.Model):
     user = models.OneToOneField('auth_app.CustomUser', on_delete=models.CASCADE, related_name='auth_driver_profile')
@@ -140,20 +193,3 @@ class Trip(models.Model):
     def __str__(self):
         return f"Trip by {self.car_owner.username} with {self.driver.username} - {self.pickup_location} to {self.destination} ({self.status})"
 
-
-
-class Car(models.Model):
-    owner = models.ForeignKey(CarOwner, on_delete=models.CASCADE, related_name='cars')
-    make = models.CharField(max_length=50, default="UNKNOWN")
-    model = models.CharField(max_length=50, default="UNKNOWN")
-    year = models.IntegerField(default=2000)
-    license_plate = models.CharField(max_length=20, default="UNKNOWN")
-    created_at = models.DateTimeField(default=now)
-    plate_number = models.CharField(max_length=20, unique=True)
-    capacity = models.IntegerField()
-    car_type = models.CharField(max_length=50)
-    car_color = models.CharField(max_length=30)
-
-    def __str__(self):
-        return f"{self.make} {self.model} ({self.year})"
- 

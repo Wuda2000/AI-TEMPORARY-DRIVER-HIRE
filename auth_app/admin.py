@@ -7,15 +7,29 @@ from auth_app.models import (
     DriverApplicationContent
 )
 from reviews.models import Review
+from django.contrib import admin
+from .models import CarOwner, Car
 
 # Registering models
-admin.site.register(CarOwner)
-admin.site.register(Car)
+
 admin.site.register(Review)
 
 # Prevent duplicate registration
 if admin.site.is_registered(DriverApplication):
     admin.site.unregister(DriverApplication)
+
+@admin.register(CarOwner)
+class CarOwnerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone_number', 'email', 'status')
+    list_filter = ('status',)
+    search_fields = ('name', 'phone_number', 'email')
+
+@admin.register(Car)
+class CarAdmin(admin.ModelAdmin):
+    list_display = ('make', 'model', 'plate_number', 'capacity', 'car_type', 'owner')
+    search_fields = ('make', 'model', 'plate_number')
+
+
 
 @admin.register(DriverApplication)
 class DriverApplicationAdmin(admin.ModelAdmin):
