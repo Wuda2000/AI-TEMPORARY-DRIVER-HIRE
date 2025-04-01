@@ -1,4 +1,9 @@
-# Ignore Python virtual environment
+# =============================
+# Merged .gitignore File
+# (Both local and remote content have been combined)
+# =============================
+
+# Ignore Python virtual environment 
 venv/
 .venv/
 ENV/
