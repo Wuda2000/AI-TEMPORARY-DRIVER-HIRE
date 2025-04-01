@@ -1,0 +1,82 @@
+{% extends "auth_app/base.html" %}
+{% load static %}
+{% block content %}
+<h2>Live Trip Tracking</h2>
+<div id="map" style="height: 500px;"></div>
+<p><strong>Estimated Arrival Time:</strong> <span id="eta">Calculating...</span></p>
+
+<script>
+    var map = L.map('map').setView([0, 0], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var driverMarker, ownerMarker, routeControl;
+    
+    // 🚀 Get the trip ID safely
+    var tripId = "{{ trip.id|default:'' }}";
+
+    if (!tripId) {
+        console.error("🚨 Trip ID is missing! Live tracking cannot proceed.");
+    } else {
+        function updateLocation() {
+            fetch(`/tracking/get_trip_location/?trip_id=${tripId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.driver_location && data.car_owner_location) {
+                        var driverCoords = [data.driver_location.latitude, data.driver_location.longitude];
+                        var ownerCoords = [data.car_owner_location.latitude, data.car_owner_location.longitude];
+
+                        // Set markers
+                        if (!driverMarker) {
+                            driverMarker = L.marker(driverCoords).addTo(map).bindPopup("Driver Location");
+                        } else {
+                            driverMarker.setLatLng(driverCoords);
+                        }
+
+                        if (!ownerMarker) {
+                            ownerMarker = L.marker(ownerCoords).addTo(map).bindPopup("Car Owner Location");
+                        } else {
+                            ownerMarker.setLatLng(ownerCoords);
+                        }
+
+                        // Update route
+                        if (routeControl) {
+                            map.removeControl(routeControl);
+                        }
+
+                        routeControl = L.Routing.control({
+                            waypoints: [
+                                L.latLng(driverCoords[0], driverCoords[1]),
+                                L.latLng(ownerCoords[0], ownerCoords[1])
+                            ],
+                            routeWhileDragging: true,
+                            createMarker: function() { return null; },
+                            router: L.Routing.osrmv1({
+                                serviceUrl: 'https://routing.openstreetmap.de/routed-car/route/v1'
+                            })
+                        }).addTo(map);
+
+                        // Fetch ETA using OpenRouteService
+                        fetch(`/tracking/calculate_eta/?from=${driverCoords.join(',')}&to=${ownerCoords.join(',')}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById("eta").innerText = data.eta;
+                            })
+                            .catch(error => console.error("❌ Error fetching ETA:", error));
+                    } else {
+                        console.warn("⚠️ No location data available for this trip.");
+                    }
+                })
+                .catch(error => console.error("❌ Error fetching location:", error));
+        }
+
+        setInterval(updateLocation, 5000);
+    }
+</script>
+
+<!-- Add Leaflet Routing Machine -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
+
+{% endblock %}

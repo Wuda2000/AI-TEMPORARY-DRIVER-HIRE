@@ -1,0 +1,149 @@
+{% extends "auth_app/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="contact-section">
+    <h1>We're Here to Help You Hire the Best Drivers</h1>
+    <p>Whether you're interested in our driver hiring solutions, need assistance, or want to explore partnership opportunities — we're ready to assist you!</p>
+    <a class="btn btn-primary mb-4" href="{% url 'index' %}">Back to Home</a>
+    
+    <div class="row justify-content-center">
+        <!-- Card 1: Driver Inquiries -->
+        <div class="col-md-4 mb-3">
+            <div class="contact-card text-center">
+                <div class="contact-icon">🚗</div>
+                <h5>Driver Inquiries</h5>
+                <p>Have questions about our driver hiring process or need more information? Our team is here to help!</p>
+                <button class="btn btn-primary">Ask Us</button>
+            </div>
+        </div>
+        <!-- Card 2: Hiring Support -->
+        <div class="col-md-4 mb-3">
+            <div class="contact-card text-center">
+                <div class="contact-icon">🛠️</div>
+                <h5>Hiring Support</h5>
+                <p>Need assistance with hiring drivers or using our platform? Our dedicated support team is ready to assist you.</p>
+                <button class="btn btn-primary">Get Support</button>
+            </div>
+        </div>
+        <!-- Card 3: Partnerships -->
+        <div class="col-md-4 mb-3">
+            <div class="contact-card text-center">
+                <div class="contact-icon">🤝</div>
+                <h5>Partnership Opportunities</h5>
+                <p>Interested in collaborating with us? We’re eager to partner with businesses that share our vision.</p>
+                <button class="btn btn-primary">Connect With Us</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        .contact-section h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .contact-section p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        /* Button Styling */
+        .btn-primary {
+            background-color: #4a90e2;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #357ABD;
+        }
+
+        /* Map Styling */
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <section class="contact-section">
+        <h1>We're Here to Help You Hire the Best Drivers</h1>
+        <p>Whether you're interested in our driver hiring solutions, need assistance, or want to explore partnership opportunities — we're ready to assist you!</p>
+        <a class="btn btn-primary mb-4" a href="{% url 'index' %}" >Back to Home</a>
+    
+        <div class="row justify-content-center">
+            <!-- Card 1: Driver Inquiries -->
+            <div class="col-md-4 mb-3">
+                <div class="contact-card text-center">
+                    <div class="contact-icon">🚗</div>
+                    <h5>Driver Inquiries</h5>
+                    <p>Have questions about our driver hiring process or need more information? Our team is here to help!</p>
+                    <button class="btn btn-primary">Ask Us</button>
+                </div>
+            </div>
+            <!-- Card 2: Hiring Support -->
+            <div class="col-md-4 mb-3">
+                <div class="contact-card text-center">
+                    <div class="contact-icon">🛠️</div>
+                    <h5>Hiring Support</h5>
+                    <p>Need assistance with hiring drivers or using our platform? Our dedicated support team is ready to assist you.</p>
+                    <button class="btn btn-primary">Get Support</button>
+                </div>
+            </div>
+            <!-- Card 3: Partnerships -->
+            <div class="col-md-4 mb-3">
+                <div class="contact-card text-center">
+                    <div class="contact-icon">🤝</div>
+                    <h5>Partnership Opportunities</h5>
+                    <p>Interested in collaborating with us? We’re eager to partner with businesses that share our vision.</p>
+                    <button class="btn btn-primary">Connect With Us</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Map Section -->
+    <div id="map"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Check if geolocation is enabled
+        function showMap(latitude, longitude) {
+            var map = L.map('map').setView([latitude, longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            L.marker([latitude, longitude]).addTo(map)
+                .bindPopup('Your Location')
+                .openPopup();
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    showMap(latitude, longitude);
+                }, function() {
+                    alert("Location access denied. Please enable location services.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Ask for location on page load
+        window.onload = function() {
+            getLocation();
+        }
+    </script>
+</body>
+</html>

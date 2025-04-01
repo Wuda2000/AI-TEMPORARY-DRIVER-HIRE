@@ -1,0 +1,38 @@
+{% extends 'auth_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2>Update Trip</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="origin">Origin:</label>
+            <input type="text" class="form-control" id="origin" name="origin" value="{{ trip.origin }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="destination">Destination:</label>
+            <input type="text" class="form-control" id="destination" name="destination" value="{{ trip.destination }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="pickup_location">Pickup Location:</label>
+            <input type="text" class="form-control" id="pickup_location" name="pickup_location" value="{{ trip.pickup_location }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="trip_date">Trip Date:</label>
+            <input type="date" class="form-control" id="trip_date" name="trip_date" value="{{ trip.trip_date|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="number" class="form-control" id="price" name="price" value="{{ trip.price }}" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Trip</button>
+        <a href="{% url 'trip_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

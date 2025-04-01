@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Tracking</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Live Trip Tracking</h2>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var map = L.map('map').setView([-1.286389, 36.817223], 14); // Default to Nairobi
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+            }).addTo(map);
+
+            var driverMarker = L.marker([-1.286389, 36.817223]).addTo(map);
+            var pickupMarker, arrivalMarker;
+            
+            // Fetch initial pickup & arrival locations
+            fetch("/tracking/trip_details/")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.pickup_lat && data.pickup_lng) {
+                        pickupMarker = L.marker([data.pickup_lat, data.pickup_lng], { color: 'blue' }).addTo(map)
+                            .bindPopup("Pickup Location").openPopup();
+                    }
+                    if (data.arrival_lat && data.arrival_lng) {
+                        arrivalMarker = L.marker([data.arrival_lat, data.arrival_lng], { color: 'red' }).addTo(map)
+                            .bindPopup("Arrival Location");
+                    }
+                })
+                .catch(error => console.error("Error fetching trip details:", error));
+
+            function updateDriverLocation() {
+                fetch("/tracking/update_location/")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.latitude && data.longitude) {
+                            var newLatLng = new L.LatLng(data.latitude, data.longitude);
+                            driverMarker.setLatLng(newLatLng);
+                            map.panTo(newLatLng);
+                        }
+                    })
+                    .catch(error => console.error("Error fetching driver location:", error));
+            }
+
+            setInterval(updateDriverLocation, 5000); // Update every 5 seconds
+        });
+    </script>
+
+</body>
+</html>

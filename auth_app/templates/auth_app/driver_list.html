@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver List</title>
+</head>
+<body>
+    <h1>Driver List</h1>
+    <ul>
+        {% for driver in drivers %}
+            <li>{{ driver.name }} - {{ driver.license_number }}</li>  <!-- Assuming Driver model has name and license_number fields -->
+        {% empty %}
+            <li>No drivers available.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

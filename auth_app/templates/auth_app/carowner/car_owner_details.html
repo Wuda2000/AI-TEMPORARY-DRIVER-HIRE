@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Owner Details</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #d4af37, #808080);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .card {
+            width: 90%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .card h2 {
+            color: #d4af37;
+            margin-bottom: 15px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        .section h3 {
+            color: #808080;
+            margin-bottom: 10px;
+        }
+        .trip-history table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .trip-history th, .trip-history td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .trip-history th {
+            background: #d4af37;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Car Owner Details</h2>
+        
+        <div class="section">
+            <h3>Vehicle Details</h3>
+            <p><strong>Car Type:</strong> {{ car.car_type }}</p>
+            <p><strong>Car Color:</strong> {{ car.car_color }}</p>
+            <p><strong>Car Plate Number:</strong> {{ car.plate_number }}</p>
+            <p><strong>Car Capacity:</strong> {{ car.capacity }}-seater</p>
+        </div>
+
+        <div class="section trip-history">
+            <h3>Trip History</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Destination</th>
+                        <th>Duration (hrs)</th>
+                        <th>Payment (KES)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in car_owner.trips.all %}
+                    <tr>
+                        <td>{{ trip.destination }}</td>
+                        <td>{{ trip.duration }}</td>
+                        <td>{{ trip.payment_offered }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">No previous trips found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3>Contact Information</h3>
+            <p><strong>Phone Number:</strong> {{ car_owner.phone_number }}</p>
+            <p><strong>Email Address:</strong> {{ car_owner.email }}</p>
+        </div>
+
+        <div class="section">
+            <h3>Ratings and Reviews</h3>
+            {% for review in car_owner.reviews.all %}
+            <p><strong>Driver:</strong> {{ review.driver.user.username }}</p>
+            <p><strong>Rating:</strong> {{ review.rating }}/5</p>
+            <p><strong>Feedback:</strong> {{ review.comment }}</p>
+            <hr>
+            {% empty %}
+            <p>No reviews yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,221 @@
+{% extends "auth_app/base.html" %}   
+{% load static %}
+
+{% block content %}
+
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">🚗 Hire {{ driver.user.username }}</h2>
+    <form method="POST" action="{% url 'hire_driver' driver.id %}">
+        {% csrf_token %}
+        {% if request.session.trip_id %}
+    <input type="hidden" name="trip_id" value="{{ request.session.trip_id }}">
+         {% endif %}
+        
+        <div class="mb-3">
+            <label class="form-label">📅 Departure Time</label>
+            <input type="datetime-local" name="departure_time" id="departure_time" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">🕒 Expected Arrival Time</label>
+            <input type="datetime-local" name="arrival_time" id="arrival_time" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">⏳ Trip Duration (Hours)</label>
+            <input type="text" id="trip_duration" class="form-control" placeholder="Calculated automatically" readonly>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">📍 Trip Pickup Point</label>
+            <input type="text" name="pickup_point" id="pickup_point" class="form-control" placeholder="Enter pickup location" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">📍 Trip Destination</label>
+            <input type="text" name="destination" id="destination" class="form-control" placeholder="Enter destination" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">📏 Distance (km)</label>
+            <input type="text" id="trip_distance" class="form-control" placeholder="Calculated automatically" readonly>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">💰 Payment Offered (KES)</label>
+            <input type="number" name="payment_offered" class="form-control" placeholder="Enter amount" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">🚀 Proceed to Payment</button>
+    </form>
+</div>
+
+<!-- OpenRouteService API for Free Distance Calculation -->
+<script>
+    let API_KEY = "";
+
+    // Fetch API key from Django backend
+    fetch("/get-api-key/")
+        .then(response => response.json())
+        .then(data => {
+            API_KEY = data.api_key;
+        })
+        .catch(error => console.error("Error fetching API Key:", error));
+
+    function getCoordinates(location, callback) {
+        if (!API_KEY) {
+            console.error("API Key not loaded yet.");
+            return;
+        }
+
+        fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${location}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.features.length > 0) {
+                    const coordinates = data.features[0].geometry.coordinates;
+                    callback(coordinates[1], coordinates[0]); // Lat, Lon
+                } else {
+                    alert("Location not found: " + location);
+                }
+            })
+            .catch(error => console.error("Geocoding error:", error));
+    }
+
+    function calculateDistance() {
+        let pickup = document.getElementById("pickup_point").value;
+        let destination = document.getElementById("destination").value;
+
+        if (pickup && destination) {
+            getCoordinates(pickup, (lat1, lon1) => {
+                getCoordinates(destination, (lat2, lon2) => {
+                    const body = JSON.stringify({
+                        locations: [[lon1, lat1], [lon2, lat2]],
+                        metrics: ["distance"],
+                        units: "km"
+                    });
+
+                    fetch("https://api.openrouteservice.org/v2/matrix/driving-car", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": API_KEY,
+                            "Content-Type": "application/json"
+                        },
+                        body: body
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        let distance = data.distances[0][1]; // Distance in km
+                        document.getElementById("trip_distance").value = distance.toFixed(2) + " km";
+                    })
+                    .catch(error => console.error("Distance calculation error:", error));
+                });
+            });
+        }
+    }
+
+    document.getElementById("pickup_point").addEventListener("change", calculateDistance);
+    document.getElementById("destination").addEventListener("change", calculateDistance);
+</script>
+
+<script>
+    document.getElementById("departure_time").addEventListener("change", calculateDuration);
+    document.getElementById("arrival_time").addEventListener("change", calculateDuration);
+    
+    function calculateDuration() {
+        let departureTime = new Date(document.getElementById("departure_time").value);
+        let arrivalTime = new Date(document.getElementById("arrival_time").value);
+        
+        if (!isNaN(departureTime) && !isNaN(arrivalTime) && arrivalTime > departureTime) {
+            let duration = (arrivalTime - departureTime) / (1000 * 60 * 60);
+            document.getElementById("trip_duration").value = duration.toFixed(2) + " hours";
+        } else {
+            document.getElementById("trip_duration").value = "";
+        }
+    }
+</script>
+<style>
+    /* Midnight Blue Theme with Modern Styling */
+body {
+    background-color: #121e36; /* Dark Midnight Blue */
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+}
+
+.container {
+    max-width: 600px;
+    background: linear-gradient(145deg, #1b2a4e, #16213e); 
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease-in-out;
+}
+
+.container:hover {
+    transform: translateY(-5px);
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    color: #f1c40f; /* Golden Yellow */
+}
+
+.form-label {
+    font-weight: 600;
+    color: #dcdde1;
+}
+
+.form-control {
+    background: #1b2a4e;
+    color: #ffffff;
+    border: 2px solid #4a69bd; /* Subtle Blue Border */
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #f1c40f;
+    box-shadow: 0 0 8px rgba(241, 196, 15, 0.8);
+    outline: none;
+}
+
+.btn-primary {
+    background: linear-gradient(145deg, #f1c40f, #ffcc00);
+    color: #121e36;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+    background: #ffdb58;
+    box-shadow: 0px 0px 10px rgba(255, 219, 88, 0.8);
+}
+
+input[readonly] {
+    background: #273c75;
+    color: #ffffff;
+    font-weight: bold;
+    border: 1px dashed #4a69bd;
+    cursor: not-allowed;
+}
+
+/* Smooth Floating Animation */
+@keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+}
+
+.container:hover {
+    animation: floating 1.5s infinite;
+}
+</style>
+
+
+{% endblock %}

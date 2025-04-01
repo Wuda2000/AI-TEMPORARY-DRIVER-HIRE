@@ -1,0 +1,29 @@
+{% extends 'auth_app/base.html' %}
+{% load static %}
+
+
+{% block content %}
+<h2>Your Trips</h2>
+<p>Here are your trips:</p>
+
+{% for trip in trips %}
+    <li><a href="{% url 'trip_detail' trip.trip_id %}">Trip to {{ trip.destination }} ({{ trip.status }})</a></li>
+{% endfor %}
+
+<ul>
+    <li><a href="{% url 'create_trip' %}">Create a new trip</a></li>
+    {% for trip in trips %}
+        <li>
+            <a href="{% url 'trip_detail' trip.trip_id %}">  
+                Trip to {{ trip.destination }} ({{ trip.status }})
+
+            </a>
+        </li>
+
+    {% empty %}
+        <li>No trips found.</li>
+    {% endfor %}
+</ul>
+
+
+{% endblock %}

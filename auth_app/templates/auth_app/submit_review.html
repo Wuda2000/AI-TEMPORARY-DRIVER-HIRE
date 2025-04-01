@@ -1,0 +1,15 @@
+{% extends "auth_app/base.html" %}
+{% block content %}
+<h2>Submit a Review for {{ driver.user.username }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <label for="id_rating">Rating (1-5):</label>
+    {{ form.rating }}
+    <label for="id_review_message">Review:</label>
+    {{ form.review_message }}
+    <button type="submit" class="btn btn-primary">Submit Review</button>
+</form>
+
+<a href="{% url 'driver_reviews' driver.id %}" class="btn btn-secondary">Cancel</a>
+{% endblock %}

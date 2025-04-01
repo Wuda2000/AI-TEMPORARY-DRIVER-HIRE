@@ -1,0 +1,177 @@
+
+{% load static %}
+
+{% block content %}
+<div class="floating-particles"></div>
+<div class="register-container">
+    <h2>Register</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        {{ form.as_p }}
+
+        <button type="submit">Register</button>
+    </form>
+    <p>Already registered? <a href="{% url 'login' %}">Log in here</a>.</p>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(-45deg, #162447, #1F4068, #1B1B2F, #0F3460);
+        background-size: 300% 300%;
+        animation: gradientAnimation 10s ease infinite;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin: 0;
+        color: #EAEAEA;
+        overflow: hidden;
+        position: relative;
+    }
+
+    @keyframes gradientAnimation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .floating-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: rgba(93, 173, 226, 0.8);
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: floatParticles 8s linear infinite;
+    }
+
+    @keyframes floatParticles {
+        0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+    }
+
+    .register-container {
+        background: rgba(41, 41, 61, 0.95);
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        animation: fadeInUp 0.8s ease-in-out;
+        width: 90%;
+        max-width: 400px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 6px;
+        background: #222;
+        color: #EAEAEA;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    input:focus {
+        border: 1px solid #5DADE2;
+        background: #282828;
+    }
+
+    button {
+        margin-top: 12px;
+        background: linear-gradient(90deg, #1F4068, #1B1B2F);
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        transition: 0.3s ease;
+    }
+
+    button:hover {
+        background: linear-gradient(90deg, #162447, #1B1B2F);
+        transform: translateY(-2px);
+    }
+
+    p a {
+        color: #5DADE2;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    p a:hover {
+        text-decoration: underline;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function createParticles() {
+        const particlesContainer = document.querySelector('.floating-particles');
+        for (let i = 0; i < 12; i++) {
+            let particle = document.createElement('div');
+            particle.classList.add('particle');
+            let size = Math.random() * 15 + 5;
+            let duration = Math.random() * 8 + 4;
+            let positionX = Math.random() * 100;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${positionX}vw`;
+            particle.style.animationDuration = `${duration}s`;
+            particlesContainer.appendChild(particle);
+        }
+    }
+    createParticles();
+</script>
+{% endblock %}
