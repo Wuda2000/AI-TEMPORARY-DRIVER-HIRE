@@ -1,0 +1,50 @@
+<body>
+    <div class="container">
+        <h2>Car Owner Application Details</h2>
+        
+        {% if application %}
+            <fieldset class="form-section">
+                <legend>Car Owner Details</legend>
+                <p><strong>Owner's Name:</strong> {{ application.name }}</p>
+                <p><strong>Phone Number:</strong> {{ application.phone_number }}</p>
+                <p><strong>Email:</strong> {{ application.email }}</p>
+            </fieldset>
+
+            {% if car %}
+                <fieldset class="form-section">
+                    <legend>Car Details</legend>
+                    <p><strong>Car Make:</strong> {{ car.make }}</p>
+                    <p><strong>Car Model:</strong> {{ car.model }}</p>
+                    <p><strong>Car Year:</strong> {{ car.created_at.year }}</p>
+                    <p><strong>Plate Number:</strong> {{ car.plate_number }}</p>
+                    <p><strong>Capacity:</strong> {{ car.capacity }}</p>
+                    <p><strong>Car Type:</strong> {{ car.car_type }}</p>
+                    <p><strong>Car Color:</strong> {{ car.car_color }}</p>
+                    {% if car.car_image %}
+                        <p><strong>Car Image:</strong> <br> <img src="{{ car.car_image.url }}" alt="Car Image" style="width:200px; height:auto;"></p>
+                    {% endif %}
+                </fieldset>
+            {% else %}
+                <p>No car details found. Please add your car information.</p>
+            {% endif %}
+
+            <div class="alert {% if application.status == 'Approved' %}alert-success{% else %}alert-danger{% endif %}">
+                {% if application.status == 'Pending' %}
+                    <p>Your application is currently under review.</p>
+                {% elif application.status == 'Approved' %}
+                    <p>Congratulations! Your application has been approved.</p>
+                {% else %}
+                    <p>Your application has been rejected. Please contact support for details.</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="alert alert-danger">
+                <p>No application found. Please submit your application.</p>
+            </div>
+        {% endif %}
+
+        <div class="btn-container">
+            <button onclick="window.location.href='{% url 'dashboard' %}'">Back to Dashboard</button>
+        </div>
+    </div>
+</body>

@@ -1,0 +1,111 @@
+{% extends "auth_app/base.html" %}  
+{% block content %}
+<style>
+    body {
+        background-color: #1a1a2e;
+        font-family: 'Arial', sans-serif;
+        color: #e0e0e0;
+    }
+
+    .grey-card {
+        background: linear-gradient(145deg, #2e2e4f, #1c1c3b);
+        border-radius: 12px;
+        box-shadow: 6px 6px 12px #14142a, -6px -6px 12px #22224a;
+        border: none;
+        transition: all 0.3s ease-in-out;
+        padding: 20px;
+        color: #e0e0e0;
+    }
+
+    .grey-card:hover {
+        transform: scale(1.02);
+        box-shadow: 8px 8px 16px #11112a, -8px -8px 16px #29295a;
+    }
+
+    .title {
+        font-weight: bold;
+        color: #ffffff;
+    }
+
+    .app-details {
+        background: #232354;
+        border-left: 5px solid #f1c40f;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: inset 4px 4px 8px #1b1b3a, inset -4px -4px 8px #2f2f5a;
+    }
+
+    .alert {
+        border-radius: 8px;
+        font-weight: bold;
+        background: linear-gradient(145deg, #2e2e4f, #1c1c3b);
+        color: #f1c40f;
+        box-shadow: inset 4px 4px 8px #14142a, inset -4px -4px 8px #29295a;
+        padding: 15px;
+    }
+
+    .btn-dark {
+        background: linear-gradient(145deg, #14142a, #29295a);
+        border: none;
+        color: #f1c40f;
+        box-shadow: 4px 4px 8px #0d0d1d, -4px -4px 8px #35356b;
+        padding: 10px 20px;
+        border-radius: 6px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-dark:hover {
+        background: linear-gradient(145deg, #11112a, #2e2e5a);
+        box-shadow: 6px 6px 12px #0b0b1a, -6px -6px 12px #3b3b78;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="title">Car Owner Application Details</h2>
+
+    {% if application %}
+        <div class="grey-card mt-4">
+            <h4>Owner Details</h4>
+            <p><strong>Name:</strong> {{ application.name }}</p>
+            <p><strong>Phone Number:</strong> {{ application.phone_number }}</p>
+            <p><strong>Email:</strong> {{ application.email }}</p>
+        </div>
+
+        {% if car %}
+            <div class="grey-card mt-4">
+                <h4>Car Details</h4>
+                <p><strong>Make:</strong> {{ car.make }}</p>
+                <p><strong>Model:</strong> {{ car.model }}</p>
+                <p><strong>Year:</strong> {{ car.created_at.year }}</p>
+                <p><strong>Plate Number:</strong> {{ car.plate_number }}</p>
+                <p><strong>Capacity:</strong> {{ car.capacity }}</p>
+                <p><strong>Type:</strong> {{ car.car_type }}</p>
+                <p><strong>Color:</strong> {{ car.car_color }}</p>
+                {% if car.car_image %}
+                    <p><strong>Car Image:</strong><br><img src="{{ car.car_image.url }}" alt="Car Image" style="width:200px; height:auto;"></p>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning">No car details found. Please add your car information.</div>
+        {% endif %}
+    
+        <h4>Application Status: <strong>{{ application.status }}</strong></h4>
+        {% if application.status == "Pending" %}
+            <p class="alert">Your application is under review.</p>
+        {% elif application.status == "Approved" %}
+            <p class="alert text-success">Congratulations! Your application has been approved.</p>
+        {% else %}
+            <p class="alert text-danger">Your application was rejected. Contact support for details.</p>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-danger">
+            <p>No application found. Please submit your application.</p>
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'dashboard' %}" class="btn btn-dark">Back to Dashboard</a>
+    </div>
+</div>
+
+{% endblock %}

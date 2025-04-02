@@ -1,0 +1,157 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            background-size: 300% 300%;
+            animation: gradientAnimation 10s ease infinite;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            color: #ddd;
+        }
+
+        .navbar {
+            background: #1c2b5e !important;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+        }
+
+        .dashboard-container {
+            max-width: 700px;
+            background: rgba(50, 50, 75, 0.95);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .dashboard-container:hover {
+            transform: scale(1.02);
+        }
+
+        .dashboard-header h1 {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .trip-section h2 {
+            color: #00a8e8;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .trip-section li {
+            background: rgba(31, 31, 46, 0.8);
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profile</a></li>
+                    <li class="nav-item">
+                        {% if user.role == "carOwner" %}
+                                <a href="{% url 'view_carowner_application.html' %}" class="btn btn-info">View My Carowner Application</a>
+                          {% endif %}
+
+                    </li>
+                    <li class="nav-item">
+                        {% if user.role == "driver" %}
+                                <a href="{% url 'view_driver_application' %}" class="btn btn-info">View My Driver Application</a>
+                          {% endif %}
+
+                    </li>
+
+                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+
+    <div class="dashboard-container mt-5">
+        <div class="dashboard-header">
+            <h1>Welcome, <strong>{{ user.username }}</strong>!</h1>
+        </div>
+        <div class="trip-section">   
+            <h2>Pending Trips</h2>
+            <ul>
+                {% for trip in pending_trips %}
+                    <p>{{ trip.id }} - {{ trip.destination }} - {{ trip.status }}</p>
+                    <li>
+                        <a href="{% url 'trip_detail' trip.id %}">{{ trip.destination }}</a> - 
+                        <strong>{{ trip.status }}</strong>
+                        <a href="{% url 'trip_update' trip.id %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'real_time_tracking' trip.id %}" class="btn btn-sm btn-primary">Track</a>
+                    </li>
+                {% empty %}
+                    <li>No pending trips.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% if is_driver and driver %}
+    <a href="{% url 'update_driver_profile' driver_id=driver.id %}" class="btn btn-warning">Complete Profile</a>
+    <a href="{% url 'update
+    <div class="text-center mt-4">
+        <a href="{% url 'become_driver' %}" class="btn btn-warning">Become a Temporary Driver</a>
+    </div>
+{% elif user.role == "carOwner" %}
+    <div class="text-center mt-4">
+        <a href="{% url 'driver_list' %}" class="btn btn-primary">Find a Driver</a>
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'register_car_owner' %}" class="btn btn-primary">Become a Car Owner</a>
+
+    </div>
+{% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{% url 'trip_list' %}" class="btn btn-secondary">View Trips</a>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+        <script>
+            alert("{{ message }}");
+        </script>
+    {% endfor %}
+{% endif %}
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

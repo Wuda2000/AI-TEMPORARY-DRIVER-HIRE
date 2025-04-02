@@ -1,0 +1,47 @@
+{% extends "auth_app/base.html" %}   
+{% block content %}
+<div class="container mt-5">
+    <h2>My Driver Application Details</h2>
+
+    {% if application %}
+        <div class="card shadow-sm p-4 mt-4">
+            <h4>Application Details</h4>
+            <p><strong>First Name:</strong> {{ application.first_name }}</p>
+            <p><strong>Surname:</strong> {{ application.surname }}</p>
+            <p><strong>Age:</strong> {{ application.age }}</p>
+{% load static %}
+<p><strong>Years of Experience:</strong> {{ application.experience_years }}</p>
+
+            <h4>Uploaded Documents:</h4>
+            <ul>
+                <li><strong>KCSE Certificate:</strong> <a href="{{ application.kcse_certificate.url }}" target="_blank" rel="noopener noreferrer">View File</a></li>
+                <li><strong>Certificate of Good Conduct:</strong> <a href="{{ application.good_conduct.url }}" target="_blank" rel="noopener noreferrer">View File</a></li>
+                <li><strong>Driver License Number:</strong> {{ application.license_number }} </li>
+                <li><strong>Driver License Number:</strong> {{ application.license_number }} </li>
+                <li><strong>Cover Letter: </strong> {{ application.cover_letter }}</li>
+                <li><strong>CV:</strong> {{ application.cv }}</li>
+            </ul>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <p>You have not submitted a driver application yet.</p>
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+</div>
+
+{% if application %}
+    <h4>Application Status: <strong>{{ application.status }}</strong></h4>
+    {% if application.status == "Pending" %}
+        <p class="text-warning">Your application is under review.</p>
+    {% elif application.status == "Approved" %}
+        <p class="text-success">Congratulations! You are now a verified driver.</p>
+    {% else %}
+        <p class="text-danger">Your application was rejected. Contact support for details.</p>
+    {% endif %}
+{% endif %}
+
+{% endblock %}
