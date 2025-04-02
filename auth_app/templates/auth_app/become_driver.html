@@ -1,15 +1,13 @@
-{% extends "auth_app/base.html" %}   
-{% block content %}
-<!-- Display messages -->
-{% if messages %}
-<div class="alert alert-info">
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-</div>
-{% endif %}
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Applications</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,7 +52,6 @@
         input[type="file"] {
             display: none;
         }
-
         .btn-submit {
             background-color: #28a745;
             color: white;
@@ -67,7 +64,166 @@
             cursor: pointer;
         }
         .btn-submit:hover { background-color: #218838; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-control {
+            background-color: #0f3460;
+            border: 1px solid #16213e;
+            color: #e0e0e0;
+        }
+        .form-control:focus {
+            background-color: #0f3460;
+            border-color: #00aaff;
+            color: #e0e0e0;
+        }
+        label {
+            color: #00aaff;
+            margin-bottom: 5px;
+        }
+        .alert {
+            background-color: #0f3460;
+            border: 1px solid #16213e;
+            color: #e0e0e0;
+        }
     </style>
+</head>
+<body>
+    <!-- Display messages -->
+    {% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Check if the user has already applied -->
+    {% if user.driverapplication %}
+        <p class="alert alert-warning">You have already applied to become a driver.</p>
+    {% else %}
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="container">
+                <h2>Driver Applications</h2>
+                
+                <!-- First Name -->
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" name="first_name" id="first_name" class="form-control" required>
+                </div>
+    
+                <!-- Surname -->
+                <div class="form-group">
+                    <label for="surname">Surname</label>
+                    <input type="text" name="surname" id="surname" class="form-control" required>
+                </div>
+    
+                <!-- Age -->
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" name="age" id="age" class="form-control" min="21" required>
+                </div>
+    
+                <!-- Years of Experience -->
+                <div class="form-group">
+                    <label for="experience_years">Years of Experience</label>
+                    <input type="number" name="experience_years" id="experience_years" class="form-control" min="1" required>
+                </div>
+
+                <!-- Submitted Applications Table -->
+                <table class="table table-bordered mt-4">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Upload Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>KCSE Certificate</td>
+                            <td>3/18/2025 5:22 AM</td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="file" name="kcse_certificate" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg">
+                                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
+                                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
+                                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
+                                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
+                                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Good Conduct</td>
+                            <td>3/18/2025 5:23 AM</td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="file" name="good_conduct" id="good_conduct" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
+                                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
+                                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
+                                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
+                                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
+                                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Cover Letter</td>
+                            <td>3/18/2025 5:24 AM</td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="file" name="cover_letter" id="cover_letter" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
+                                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
+                                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
+                                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
+                                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
+                                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Driver License</td>
+                            <td>3/18/2025 5:25 AM</td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="file" name="driver_license" id="driver_license" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
+                                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
+                                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
+                                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
+                                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
+                                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>CV</td>
+                            <td>3/18/2025 5:26 AM</td>
+                            <td>
+                                <div class="form-group">
+                                    <input type="file" name="cv" id="cv" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
+                                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
+                                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
+                                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
+                                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
+                                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn-submit" onclick="submitForm()">Submit</button>
+            </div>
+        </form>
+    {% endif %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function getCurrentTimestamp() {
             let now = new Date();
@@ -114,39 +270,41 @@
             }
     
             navigator.clipboard.writeText(fileName).then(() => {
-                alert("File name copied: " + fileName);
+                alert("File name copied to clipboard: " + fileName);
             }).catch(err => {
-                alert("Failed to copy text: " + err);
+                console.error("Failed to copy text: ", err);
+                alert("Failed to copy file name.");
             });
         }
     
         function editText(button) {
             let row = button.closest("tr");
             let fileInput = row.querySelector("input[type='file']");
+            let fileName = fileInput.getAttribute("data-filename");
     
-            if (!fileInput.getAttribute("data-filename")) {
-                alert("No uploaded file to edit.");
+            if (!fileName) {
+                alert("No file uploaded to edit.");
                 return;
             }
     
-            fileInput.click(); // Open file picker for editing
+            let newFileName = prompt("Enter new file name:", fileName);
+            if (newFileName) {
+                fileInput.setAttribute("data-filename", newFileName);
+                alert("File name updated to: " + newFileName);
+            }
         }
     
         function deleteText(button) {
             let row = button.closest("tr");
             let fileInput = row.querySelector("input[type='file']");
     
-            if (!fileInput.getAttribute("data-filename")) {
-                alert("No file uploaded to delete.");
-                return;
+            if (confirm("Are you sure you want to delete this file?")) {
+                fileInput.value = ""; // Clear the file input
+                fileInput.removeAttribute("data-filename");
+                fileInput.removeAttribute("data-fileurl");
+                updateLastModified(row);
+                alert("File deleted.");
             }
-    
-            // Remove uploaded file reference
-            fileInput.value = "";
-            fileInput.removeAttribute("data-filename");
-            row.cells[1].textContent = "N/A"; // Reset timestamp
-    
-            alert("File deleted successfully.");
         }
     
         function previewFile(button) {
@@ -176,143 +334,11 @@
                 document.body.removeChild(a);
             }
         }
+
+        function submitForm() {
+            // Add any additional validation here if needed
+            document.querySelector('form').submit();
+        }
     </script>
-    
-    
-
-    <!-- Check if the user has already applied -->
-    {% if user.driverapplication %}
-        <p class="alert alert-warning">You have already applied to become a driver.</p>
-    {% else %}
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-    <div class="container">
-        <h2>Driver Applications</h2>
-        
-                <!-- Driver Application Form -->
-<form method="POST" enctype="multipart/form-data">
-
-    {% csrf_token %}
-    
-                <!-- First Name -->
-                <div class="form-group">
-                    <label for="first_name">First Name</label>
-                    <input type="text" name="first_name" id="first_name" class="form-control" required>
-                </div>
-    
-                <!-- Surname -->
-                <div class="form-group">
-                    <label for="surname">Surname</label>
-                    <input type="text" name="surname" id="surname" class="form-control" required>
-                </div>
-    
-                <!-- Age -->
-                <div class="form-group">
-                    <label for="age">Age</label>
-                    <input type="number" name="age" id="age" class="form-control" min="21" required>
-                </div>
-    
-                <!-- Years of Experience -->
-                <div class="form-group">
-                    <label for="experience_years">Years of Experience</label>
-
-                    <input type="number" name="experience_years" id="experience_years" class="form-control" min="1" required>
-
-                </div>
-    
-
-    <!-- Submitted Applications Table -->
-    <table class="table table-bordered mt-4">
-
-    <thead>
-        <tr>
-            <th>Document</th>
-            <th>Upload Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>KCSE Certificate</td>
-            <td>3/18/2025 5:22 AM</td>
-            <td>
-                <div class="form-group">
-                    <input type="file" name="kcse_certificate" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg">
-                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
-                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
-                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
-                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
-                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
-                </div>
-            </td>
-        </tr>
-        
-        <tr>
-            <td>Good Conduct</td>
-            <td>3/18/2025 5:23 AM</td>
-            <td>
-                <div class="form-group">
-                    <input type="file" name="good_conduct" id="good_conduct" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
-                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
-                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
-                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
-                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
-                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
-                </div>
-            </td>
-        </tr>
-        
-        <tr>
-            <td>Cover Letter</td>
-            <td>3/18/2025 5:24 AM</td>
-            <td>
-                <div class="form-group">
-                    <input type="file" name="cover_letter" id="cover_letter" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
-                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
-                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
-                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
-                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
-                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
-                </div>
-            </td>
-        </tr>
-        
-        <tr>
-            <td>Driver License</td>
-            <td>3/18/2025 5:25 AM</td>
-            <td>
-                <div class="form-group">
-                    <input type="file" name="driver_license" id="driver_license" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
-                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
-                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
-                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
-                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
-                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
-                </div>
-            </td>
-        </tr>
-        
-        <tr>
-            <td>CV</td>
-            <td>3/18/2025 5:26 AM</td>
-            <td>
-                <div class="form-group">
-                    <input type="file" name="cv" id="cv" class="form-control-file" accept=".pdf,.docx,.doc,.jpg,.png,.jpeg" required>
-                    <button type="button" class="btn btn-upload" onclick="uploadFile(this)">Upload</button>
-                    <button type="button" class="btn btn-copy" onclick="copyText(this)">Copy</button>
-                    <button type="button" class="btn btn-edit" onclick="editText(this)">Edit</button>
-                    <button type="button" class="btn btn-delete" onclick="deleteText(this)">Delete</button>
-                    <button type="button" class="btn btn-preview" onclick="previewFile(this)">Preview</button>
-                </div>
-            </td>
-        </tr>
-        
-    </tbody>
-</table>
-<button class="btn-submit" onclick="submitForm()">Submit</button>
-</form>
-
-    </div>
-    
-    {% endif %}
-{% endblock %}
+</body>
+</html>

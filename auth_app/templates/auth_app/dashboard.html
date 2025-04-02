@@ -1,159 +1,213 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
+    <title>Dashboard - AutoTempoHire</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-            background-size: 300% 300%;
-            animation: gradientAnimation 10s ease infinite;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            color: #ddd;
+            background-color: #f8f9fa;
         }
-
-        .navbar {
-            background: #1c2b5e !important;
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5);
-            width: 100%;
-        }
-
-        .dashboard-container {
-            max-width: 700px;
-            background: rgba(50, 50, 75, 0.95);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.6);
-            text-align: center;
-            animation: fadeIn 1s ease-in-out;
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .dashboard-container:hover {
-            transform: scale(1.02);
-        }
-
-        .dashboard-header h1 {
-            color: #fff;
-            font-weight: 600;
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-
-        .trip-section h2 {
-            color: #00a8e8;
-            font-weight: 600;
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        .list-group-item {
+            border-radius: 5px;
             margin-bottom: 10px;
         }
-
-        .trip-section li {
-            background: rgba(31, 31, 46, 0.8);
-            padding: 12px;
+        .alert {
             border-radius: 5px;
-            margin-bottom: 5px;
-            color: #ddd;
+        }
+        .navbar {
+            background-color: #007bff;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+        }
+        .nav-link:hover {
+            color: white !important;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Dashboard</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">AutoTempoHire</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profile</a></li>
+                    {% if user.role == 'car_owner' %}
                     <li class="nav-item">
-                        {% if user.role == "carOwner" %}
                         <a href="{% url 'view_carowner_application' %}" class="btn btn-info">View My Carowner Application</a>
-
-                          {% endif %}
-
                     </li>
+                    {% endif %}
+                    {% if user.role == 'driver' %}
                     <li class="nav-item">
-                        {% if user.role == "driver" %}
-                                <a href="{% url 'view_driver_application' %}" class="btn btn-info">View My Driver Application</a>
-                          {% endif %}
-
+                        <a href="{% url 'view_driver_application' %}" class="btn btn-info">View My Driver Application</a>
                     </li>
-
-                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                    {% endif %}
+                    {% if user.role == 'car_owner' %}
+                        {% if car_owner %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'update_carowner_profile' car_owner_id=car_owner.id %}">
+                                    <i class="fas fa-user"></i> My Profile
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'view_carowner_application' %}" class="nav-link">View My Carowner Application</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                    {% if user.role == 'driver' %}
+                        {% if driver %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'update_driver_profile' driver_id=driver.id %}">
+                                    <i class="fas fa-user"></i> My Profile
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'view_driver_application' %}" class="nav-link">View My Driver Application</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-    
 
-    <div class="dashboard-container mt-5">
-        <div class="dashboard-header">
-            <h1>Welcome, <strong>{{ user.username }}</strong>!</h1>
+    <div class="container mt-4">
+        <h2>Welcome, {{ user.username }}!</h2>
+        
+        {% if user.role == 'car_owner' %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Car Owner Dashboard</h3>
+            </div>
+            <div class="card-body">
+                <p>You are logged in as a Car Owner.</p>
+                {% if car_owner %}
+                    <a href="{% url 'update_carowner_profile' car_owner_id=car_owner.id %}" class="btn btn-primary">Update Profile</a>
+                {% else %}
+                    <p>You need to complete your car owner profile first.</p>
+                    <a href="{% url 'register_car_owner' %}" class="btn btn-primary">Complete Profile</a>
+                {% endif %}
+                <a href="{% url 'trip_list' %}" class="btn btn-success">View Trips</a>
+            </div>
         </div>
-        <div class="trip-section">   
-            <h2>Pending Trips</h2>
-            <ul>
-                {% for trip in pending_trips %}
-                    <p>{{ trip.id }} - {{ trip.destination }} - {{ trip.status }}</p>
-                    <li>
-                        <a href="{% url 'trip_detail' trip.id %}">{{ trip.destination }}</a> - 
-                        <strong>{{ trip.status }}</strong>
-                        <a href="{% url 'trip_update' trip.id %}" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="{% url 'real_time_tracking' trip.id %}" class="btn btn-sm btn-primary">Track</a>
+        {% elif user.role == 'driver' %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Driver Dashboard</h3>
+            </div>
+            <div class="card-body">
+                <p>You are logged in as a Driver.</p>
+                {% if driver %}
+                    <a href="{% url 'update_driver_profile' driver_id=driver.id %}" class="btn btn-primary">Update Profile</a>
+                {% else %}
+                    <p>You need to complete your driver profile first.</p>
+                    <a href="{% url 'become_driver' %}" class="btn btn-primary">Complete Profile</a>
+                {% endif %}
+                <a href="{% url 'trip_list' %}" class="btn btn-success">View Trips</a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if pending_trips %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Pending Trips</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for trip in pending_trips %}
+                    <li class="list-group-item">
+                        <h5>{{ trip.title }}</h5>
+                        <p>{{ trip.description }}</p>
+                        <a href="{% url 'trip_detail' id=trip.id %}" class="btn btn-info">View Details</a>
                     </li>
-                {% empty %}
-                    <li>No pending trips.</li>
-                {% endfor %}
-            </ul>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-        {% if is_driver and driver %}
-    <a href="{% url 'update_driver_profile' driver_id=driver.id %}" class="btn btn-warning">Complete Profile</a>
-    
+        {% endif %}
 
-
-    <div class="text-center mt-4">
-        <a href="{% url 'become_driver' %}" class="btn btn-warning">Become a Temporary Driver</a>
-    </div>
-{% elif user.role == "carOwner" %}
-    <div class="text-center mt-4">
-        <a href="{% url 'driver_list' %}" class="btn btn-primary">Find a Driver</a>
-    </div>
-    <div class="text-center mt-4">
-        <a href="{% url 'register_car_owner' %}" class="btn btn-primary">Become a Car Owner</a>
-
-    </div>
-{% endif %}
+        {% if user.role == "driver" and not driver %}
+            <div class="text-center mt-4">
+                <a href="{% url 'become_driver' %}" class="btn btn-primary">Become a Driver</a>
+            </div>
+        {% elif user.role == "driver" and driver %}
+            <div class="text-center mt-4">
+                <a href="{% url 'update_driver_profile' driver_id=driver.id %}" class="btn btn-primary">Update Driver Profile</a>
+            </div>
+        {% elif user.role == "car_owner" %}
+            <div class="text-center mt-4">
+                <a href="{% url 'driver_list' %}" class="btn btn-primary">Find a Driver</a>
+            </div>
+            <div class="text-center mt-4">
+                <a href="{% url 'register_car_owner' %}" class="btn btn-primary">Register as Car Owner</a>
+            </div>
+        {% endif %}
 
         <div class="text-center mt-4">
-            <a href="{% url 'trip_list' %}" class="btn btn-secondary">View Trips</a>
+            <a href="{% url 'trip_list' %}" class="btn btn-secondary">View All Trips</a>
         </div>
     </div>
 
     {% if messages %}
-    {% for message in messages %}
-        <script>
-            alert("{{ message }}");
-        </script>
-    {% endfor %}
-{% endif %}
-
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

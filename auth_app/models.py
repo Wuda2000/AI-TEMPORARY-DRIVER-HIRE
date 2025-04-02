@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
@@ -21,6 +20,7 @@ def get_payment_model():
 def generate_unique_id():
     return str(uuid.uuid4().hex[:12]) 
 
+
 class CustomUser(AbstractUser):
     CAR_OWNER = 'car_owner'
     DRIVER = 'driver'
@@ -35,7 +35,10 @@ class CustomUser(AbstractUser):
     password_reset_token = models.CharField(max_length=255, blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     email_verified = models.BooleanField(default=False)  # If this was changed to is_verified
-
+    email = models.EmailField(unique=True)
+    email_verification_token = models.CharField(max_length=255, blank=True, null=True)
+    verification_token_created_at = models.DateTimeField(null=True, blank=True)
+    
     def __str__(self):
         return self.username
 

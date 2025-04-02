@@ -61,14 +61,26 @@ def login_view(request):
 @ensure_csrf_cookie
 def dashboard(request):
     trip_list_url = reverse('trip_list')
-    is_driver = getattr(request.user, "role", None) == "driver"
-    driver = Driver.objects.filter(user=request.user).first()
+    user_role = getattr(request.user, "role", None)
+    is_driver = user_role == "driver"
+    driver = Driver.objects.filter(user=request.user).first() if is_driver else None
+    car_owner = CarOwner.objects.filter(user=request.user).first() if user_role == "car_owner" else None
+    
+    # Get pending trips
+    pending_trips = Trip.objects.filter(status="pending")
+
+    # Debug information
+    print(f"User: {request.user.username}, Role: {user_role}, Is Driver: {is_driver}")
+    print(f"User role type: {type(user_role)}")
+    print(f"User role value: '{user_role}'")
 
     context = {
         'is_driver': is_driver,
         'user': request.user,
         'trip_list_url': trip_list_url,
         'driver': driver,
+        'car_owner': car_owner,
+        'pending_trips': pending_trips,
     }
     return render(request, 'auth_app/dashboard.html', context)
 
@@ -77,14 +89,32 @@ def register_car_owner(request):
     if request.method == 'POST':
         owner_form = CarOwnerForm(request.POST)
         car_form = CarForm(request.POST, request.FILES)
+        
+        # Check if user is authenticated and already has a car owner profile
+        if request.user.is_authenticated:
+            existing_car_owner = CarOwner.objects.filter(user=request.user).first()
+            if existing_car_owner:
+                messages.warning(request, "You already have a car owner profile. You can update it instead.")
+                return redirect('update_carowner_profile', car_owner_id=existing_car_owner.id)
+        
         if owner_form.is_valid() and car_form.is_valid():
-            owner = owner_form.save()
+            owner = owner_form.save(commit=False)
+            if request.user.is_authenticated:
+                owner.user = request.user
+            owner.save()
             car = car_form.save(commit=False)
             car.owner = owner
             car.save()
-            return redirect('view_carowner_application', owner_id=owner.id)
+            return redirect('view_carowner_application')
     else:
-        owner_form = CarOwnerForm()
+        # Pre-fill the form with user's information if they're logged in
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data = {
+                'name': request.user.username,
+                'email': request.user.email,
+            }
+        owner_form = CarOwnerForm(initial=initial_data)
         car_form = CarForm()
     
     return render(request, 'auth_app/carowner/register_car_owner.html', {
@@ -92,8 +122,22 @@ def register_car_owner(request):
         'car_form': car_form,
     })
 
+@login_required
 def view_carowner_application(request):
-    return render(request, 'auth_app/carowner/view_carowner_application.html')
+    # Get the car owner profile for the current user
+    car_owner = CarOwner.objects.filter(user=request.user).first()
+    
+    if not car_owner:
+        messages.warning(request, "You don't have a car owner profile yet.")
+        return redirect('register_car_owner')
+    
+    # Get the car associated with this car owner
+    car = Car.objects.filter(owner=car_owner).first()
+    
+    return render(request, 'auth_app/carowner/view_carowner_application.html', {
+        'application': car_owner,
+        'car': car
+    })
 
 
 def car_owner_details(request, owner_id):
@@ -144,7 +188,7 @@ def track_trip(request, id):
 def profile(request):
     role = getattr(request.user, "role", None)
     driver = Driver.objects.filter(user=request.user).first() if role == "driver" else None
-    car_owner = CarOwner.objects.filter(user=request.user).first() if role == "carOwner" else None
+    car_owner = CarOwner.objects.filter(user=request.user).first() if role == "car_owner" else None
 
     return render(request, 'auth_app/profile.html', {
         'user': request.user,
@@ -291,14 +335,19 @@ def verify_email(request, token):
     try:
         user = CustomUser.objects.get(email_verification_token=token)
         if user.verification_token_created_at < timezone.now() - timedelta(days=1):
-            return JsonResponse({'error': 'Verification link expired.'}, status=400)
+            messages.error(request, 'Verification link has expired. Please request a new one.')
+            return redirect('login')
 
         user.is_active = True
+        user.email_verified = True
         user.email_verification_token = None
         user.save()
-        return JsonResponse({'message': 'Email verified successfully.'})
+        
+        messages.success(request, 'Email verified successfully! You can now login.')
+        return redirect('login')
     except CustomUser.DoesNotExist:
-        return JsonResponse({'error': 'Invalid token.'}, status=400)
+        messages.error(request, 'Invalid verification link.')
+        return redirect('login')
 
 def forgot_password(request):
     if request.method == 'POST':
@@ -356,7 +405,9 @@ def reset_password(request, token):
 
     return render(request, 'auth_app/reset_password.html', {'token': token})
 
-def api_register(request):  
+def api_register(request):
+    print("API Register called")  # Debugging line
+    print("Request method:", request.method)  # Debugging line
     if request.method == 'POST':
         data = json.loads(request.body)
         username = data.get('username')
@@ -384,7 +435,16 @@ def api_register(request):
                 role=role
             )
 
-            group = Group.objects.get_or_create(name='CarOwners' if role == 'carOwner' else 'Drivers')[0]
+            # Create CarOwner object if user is a car owner
+            if role == 'car_owner':
+                CarOwner.objects.create(
+                    user=user,
+                    name=username,  # Use username as initial name
+                    email=email,
+                    status='active'
+                )
+
+            group = Group.objects.get_or_create(name='CarOwners' if role == 'car_owner' else 'Drivers')[0]
             user.groups.add(group)
 
             return JsonResponse({'message': 'User registered successfully.'}, status=201)
@@ -408,41 +468,103 @@ class ApiLoginView(APIView):
             return JsonResponse({'error': 'Invalid credentials.'}, status=401)
 
 def send_verification_email(user):  
-    """Send an email verification link after user registration.""" 
+    """Send an email verification link after user registration."""  
     verification_token = get_random_string(length=32)
     user.email_verification_token = verification_token  
     user.verification_token_created_at = timezone.now()  
     user.save()
 
-    verification_link = f"http://127.0.0.1:8000/auth/verify/{verification_token}/"
+    verification_link = f"{settings.FRONTEND_URL}/auth/verify/{verification_token}/"
 
-    send_mail(
-        'Verify Your Email - AutoTempoHire',
-        f'Hello {user.username},\n\nClick the link below to verify your email:\n{verification_link}',
-        'fridawawuda@gmail.com',  
-        [user.email],
-        fail_silently=False,
-    )
+    subject = 'Verify Your Email - AutoTempoHire'
+    message = f'''Hello {user.username},
+
+Thank you for registering with AutoTempoHire. Please click the link below to verify your email address:
+
+{verification_link}
+
+If you did not register for an account, please ignore this email.
+
+Best regards,
+The AutoTempoHire Team'''
+
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Failed to send verification email: {str(e)}")
+        raise
+
 
 def register(request):  
     """Handle user registration and send verification email."""  
-
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  
-            user.save()
-
-            send_verification_email(user)  
-
-            return JsonResponse({'message': 'Registration successful. Check your email to verify your account.'}, status=201)
-
+            try:
+                user = form.save(commit=False)
+                user.is_active = False  # Mark as inactive until verified
+                user.email_verified = False
+                user.save()
+                
+                # Create CarOwner object if user is a car owner
+                if user.role == 'car_owner':
+                    CarOwner.objects.create(
+                        user=user,
+                        name=user.username,  # Use username as initial name
+                        email=user.email,
+                        status='active'
+                    )
+                
+                # Send verification email
+                try:
+                    send_verification_email(user)
+                    messages.success(request, 'Registration successful! Please check your email to verify your account.')
+                except Exception as e:
+                    messages.warning(request, 'Registration successful but verification email could not be sent. Please contact support.')
+                    print(f"Email sending error: {str(e)}")
+                
+                return redirect('login')  # Redirect to login after successful registration
+            except Exception as e:
+                messages.error(request, f'An error occurred during registration: {str(e)}')
+                print(f"Registration error: {str(e)}")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = CustomUserCreationForm()
 
-    return render(request, "auth_app/register.html", {"form": form})  
+    return render(request, 'auth_app/register.html', {'form': form})
+
 
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+@login_required
+def update_carowner_profile(request, car_owner_id):
+    car_owner = get_object_or_404(CarOwner, id=car_owner_id)  
+
+    if car_owner.user != request.user:
+        print("Unauthorized access attempt.")
+        return redirect('dashboard')  
+
+    if request.method == "POST":
+        form = CarOwnerForm(request.POST, request.FILES, instance=car_owner)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully!")
+            return redirect('dashboard')  
+    else:
+        form = CarOwnerForm(instance=car_owner)
+
+    return render(request, 'auth_app/update_carowner_profile.html', {
+        'form': form,
+        'car_owner': car_owner
+    })

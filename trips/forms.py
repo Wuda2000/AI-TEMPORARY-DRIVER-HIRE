@@ -39,8 +39,8 @@ class TripBookingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Ensure the User model has a 'role' field
-        self.fields['driver'].queryset = CustomUser.objects.filter(role='Driver')  # Ensure role matches stored values
-        self.fields['car_owner'].queryset = CustomUser.objects.filter(role='CarOwner') 
+        self.fields['driver'].queryset = CustomUser.objects.filter(role='driver')  # Ensure role matches stored values
+        self.fields['car_owner'].queryset = CustomUser.objects.filter(role='car_owner')
 
 
 

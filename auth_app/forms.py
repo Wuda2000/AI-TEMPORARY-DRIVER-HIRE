@@ -18,24 +18,14 @@ import re  # To use for password strength check
 
 
 class CarOwnerForm(forms.ModelForm):
-    
-    # Optionally adding a profile image field back
-    profile_image = forms.ImageField(
-        required=False,
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control'}),
-        help_text="Upload a profile picture (optional)."
-    )
-
     class Meta:
         model = CarOwner
-        fields = ['name', 'phone_number', 'email', 'profile_image']  # Included 'profile_image' again
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Adding custom attributes for styling, if needed
-        self.fields['name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter your name'})
-        self.fields['phone_number'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter your phone number'})
-        self.fields['email'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter your email'})
+        fields = ['name', 'email', 'phone_number']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 
 class CarOwnerRegistrationForm(forms.ModelForm):
@@ -116,12 +106,34 @@ class CarDetailsForm(forms.ModelForm):
         fields = ['car_type', 'car_color', 'plate_number', 'capacity', 'car_image']
 
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    user_type = forms.ChoiceField(choices=CustomUser.ROLE_CHOICES, required=True)
+    email = forms.EmailField(
+        required=True,
+        help_text='Enter a valid email address. This will be used for verification.'
+    )
+    role = forms.ChoiceField(
+        choices=CustomUser.ROLE_CHOICES,
+        required=True,
+        help_text='Select your role in the system.'
+    )
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'password1', 'password2', 'user_type')
+        fields = ('username', 'email', 'role', 'password1', 'password2')
+        help_texts = {
+            'username': 'Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to all fields
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({'class': 'form-control'})
+            if field in ['password1', 'password2']:
+                self.fields[field].widget.attrs.update({'placeholder': 'Enter your password'})
+            elif field == 'email':
+                self.fields[field].widget.attrs.update({'placeholder': 'Enter your email'})
+            elif field == 'username':
+                self.fields[field].widget.attrs.update({'placeholder': 'Choose a username'})
 
     def clean_email(self):
         """Validate email uniqueness at the form level."""
@@ -155,12 +167,12 @@ class CustomUserCreationForm(UserCreationForm):
 
         return password
 
-    def clean_user_type(self):
-        """Ensure the user type is valid."""
-        user_type = self.cleaned_data.get('user_type')
-        if user_type not in dict(CustomUser.ROLE_CHOICES):
-            raise ValidationError("Invalid user type selected.")
-        return user_type
+    def clean_role(self):
+        """Ensure the role is valid."""
+        role = self.cleaned_data.get('role')
+        if role not in dict(CustomUser.ROLE_CHOICES):
+            raise ValidationError("Invalid role selected.")
+        return role
 
 
 from django import forms
@@ -303,3 +315,18 @@ class TripUpdateForm(forms.ModelForm):
     class Meta:
         model = Trip
         fields = ["status"]
+
+class DriverForm(forms.ModelForm):
+    class Meta:
+        model = Driver
+        fields = ['name', 'license_number', 'phone_number', 'location', 'bio', 'experience_years', 'profile_picture', 'price_per_trip']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'license_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'experience_years': forms.NumberInput(attrs={'class': 'form-control'}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
+            'price_per_trip': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

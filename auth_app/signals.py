@@ -19,7 +19,7 @@ def create_groups(sender, **kwargs):
 def create_user_groups(sender, instance, created, **kwargs):
     if created:
         # Automatically assign the user to default groups
-        if instance.role == 'carOwner':
+        if instance.role == 'car_owner':
             instance.groups.add(Group.objects.get(name='CarOwners'))
         elif instance.role == 'driver':
             instance.groups.add(Group.objects.get(name='Drivers'))
