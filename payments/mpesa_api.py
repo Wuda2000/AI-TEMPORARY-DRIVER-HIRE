@@ -17,8 +17,8 @@ class MpesaGateway:
         self.shortcode = os.getenv("MPESA_SHORTCODE")
         self.passkey = os.getenv("MPESA_PASSKEY")
         self.callback_url = os.getenv("MPESA_CALLBACK_URL")
-        self.token_url = os.getenv("MPESA_TOKEN_URL", "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials")  # Production
-        self.stk_url = os.getenv("MPESA_STK_URL", "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest")  # Production
+        self.token_url = os.getenv("MPESA_TOKEN_URL")  # Production
+        self.stk_url = os.getenv("MPESA_STK_URL")  # Production
 
         self.access_token = None
         self.token_expiry = None  # Store token expiration time
